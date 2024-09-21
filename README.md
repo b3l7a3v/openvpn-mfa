@@ -35,9 +35,9 @@ sudo systemctl enable netfilter-persistent
 
 ### Preparing directories:
 ```
-mkdir -p /root/pki/ # CA and users keys
-mkdir -p /etc/openvpn/pki/ # openvpn-server keys
-mkdir -p /etc/openvpn/pam/ # 
+mkdir -p /root/pki/
+mkdir -p /etc/openvpn/pki/ 
+mkdir -p /etc/openvpn/pam/ 
 mkdir -p /opt/openvpn-mfa/
 mkdir -p /opt/openvpn-profiles/
 mkdir -p /opt/openvpn-ccd/
@@ -61,7 +61,7 @@ echo "" > /opt/openvpn-ccd/dummy.client
 
 ### Setup OpenVPN server address into /opt/openvpn-scripts/make-ovpn-profile.sh
 ```
-vim /opt/openvpn-ccd/dummy.client
+vim /opt/openvpn-ccd/make-ovpn-profile.sh
 
 ---
 ...
@@ -94,6 +94,8 @@ sudo iptables -I FORWARD -i <DEFAULT_IF_NAME> -o <VIRTUAL_IF_NAME> -j ACCEPT
 sudo iptables -I FORWARD -i <VIRTUAL_IF_NAME> -o <DEFAULT_IF_NAME> -j ACCEPT
 
 sudo iptables -A FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT
+sudo iptables -A FORWARD -i <VIRTUAL_IF_NAME> -o <DEFAULT_IF_NAME> -j ACCEPT
+sudo iptables -A FORWARD -i <DEFAULT_IF_NAME> -o <VIRTUAL_IF_NAME> -j ACCEPT
 sudo iptables -A FORWARD -s 10.8.0.0/16 -j ACCEPT
 
 sudo iptables -t nat -A POSTROUTING -s 10.8.0.0/16 -o <DEFAULT_IF_NAME> -j MASQUERADE
