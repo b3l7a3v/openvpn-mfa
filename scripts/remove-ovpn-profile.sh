@@ -1,5 +1,9 @@
 #!/bin/bash
 
+### Remove user from container
+echo "removed -> user $1  from openvpn container"
+docker exec -it openvpn bash -c "deluser --remove-home $1"
+
 ### Remove certificate for a user
 echo "removed -> /root/pki/issued/$1.crt"
 rm -f /root/pki/issued/$1.crt

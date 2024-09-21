@@ -8,7 +8,7 @@ docker exec -it openvpn bash -c "easyrsa build-client-full $1 nopass"
 
 ### Create a ccd file
 sudo tee /opt/openvpn-ccd/$1 <<EOF
-push \"route 10.8.0.0 255.255.0.0\"
+push "route 10.8.0.0 255.255.0.0"
 EOF
 
 ### Create a user in container
