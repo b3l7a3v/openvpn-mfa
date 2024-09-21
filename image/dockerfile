@@ -1,0 +1,65 @@
+FROM alpine:3.20
+
+LABEL maintainer="Maxim Belyaev"
+
+### Install packages
+RUN apk add --no-cache \
+    bash \
+    iptables \
+    openssl \
+    wget \
+    make \
+    gcc \
+    musl-dev \
+    linux-headers \
+    lzo-dev \
+    lz4-dev \
+    cmake \
+    curl-dev \
+    libnl3-dev \
+    libcap-ng-dev \
+    linux-pam-dev \
+    pkgconfig
+
+### Install MFA packages
+RUN apk add google-authenticator libqrencode
+
+### Create mfa-keys directory
+RUN mkdir -p /opt/google-auth/ && chmod 777 /opt/google-auth/
+
+### Download and configure build
+RUN wget https://github.com/OpenVPN/openvpn/releases/download/v2.6.12/openvpn-2.6.12.tar.gz && \
+    tar -xzvf openvpn-2.6.12.tar.gz && \
+    cd openvpn-2.6.12 && \
+    ./configure --with-crypto-library=openssl
+
+### Build openvpn
+RUN cd openvpn-2.6.12 && ./configure && \
+    make && \
+    make install
+
+### Create service directory
+RUN mkdir -p /etc/openvpn; rm -f /openvpn-2.6.12.tar.gz
+
+### Remove unusual files
+RUN rm -f /openvpn-2.6.12.tar.gz && rm -rf /openvpn-2.6.12/
+
+### Install and extract EasyRSA from sources
+#RUN mkdir -p /etc/easyrsa/; \
+#    wget -O /tmp/EasyRSA-unix-v3.0.8.tgz https://github.com/OpenVPN/easy-rsa/releases/download/v3.0.8/EasyRSA-3.0.8.tgz && \
+#    tar xzf /tmp/EasyRSA-unix-v3.0.8.tgz -C /etc/easyrsa && \
+#    mv /etc/easyrsa/EasyRSA-3.0.8/* /etc/easyrsa/ && \
+#    rm /tmp/EasyRSA-unix-v3.0.8.tgz && rm -rf /etc/easyrsa/EasyRSA-3.0.8/
+#RUN ln -s /etc/easy-rsa/easyrsa /usr/bin/easyrsa
+
+### Install and extract EasyRSA from package manager
+RUN apk add easy-rsa
+RUN ln -s /usr/share/easy-rsa/easyrsa /usr/bin/easyrsa
+
+### Copy config into container
+COPY ./docker-entrypoint.sh /docker-entrypoint.sh
+
+RUN chmod +x /docker-entrypoint.sh
+
+ENTRYPOINT ./docker-entrypoint.sh
+

@@ -1,0 +1,48 @@
+version: '3.8'
+services:
+
+  #######################################
+  #            OPENVPN-SERVER           #
+  #######################################
+
+  openvpn:
+    build: ./image/
+    hostname: 'openvpn-server'
+    container_name: 'openvpn'
+    cap_add:
+      - NET_ADMIN
+    network_mode: host
+    devices:
+      - /dev/net/tun
+    environment:
+      - EASYRSA_PKI=/root/pki
+      - EASYRSA_BATCH=1
+    volumes:
+      - /root/pki/:/root/pki/ # dir for keys of CA
+      - /etc/openvpn/:/etc/openvpn/ # dir for openvpn configs
+      - /etc/openvpn/pam/:/etc/pam.d/ # dir for pam module configs
+      - /opt/openvpn-mfa/:/opt/google-auth/ # dir for google-auth private keys
+      - /opt/openvpn-ccd/:/etc/openvpn/ccd/ # dir for client configs
+      - /var/log/openvpn:/var/log/ # dir for logs
+    restart: unless-stopped
+
+  #######################################
+  #              OPENVPN-UI             #
+  #######################################
+
+#    openvpn-ui:
+#       container_name: openvpn-ui
+#       image: openvpn-ui:latest
+#       environment:
+#           - OPENVPN_ADMIN_USERNAME=admin
+#           - OPENVPN_ADMIN_PASSWORD=admin
+#       privileged: true
+#       ports:
+#           - "8080:8080/tcp"
+#       volumes:
+#           - ./:/etc/openvpn
+#           - ./db:/opt/openvpn-ui/db
+#           - ./pki:/usr/share/easy-rsa/pki
+#           - /var/run/docker.sock:/var/run/docker.sock:ro
+#       restart: always
+

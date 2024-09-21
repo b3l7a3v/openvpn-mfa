@@ -1,0 +1,10 @@
+### Requires authorization on the openvpn server specifying TOTP
+auth required pam_google_authenticator.so
+
+### Requires authorization on the openvpn server with a username.
+account optional pam_unix.so
+
+### Requires authorization on the openvpn server with a password.
+# password optional pam_unix.so
+
+
