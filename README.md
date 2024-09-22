@@ -90,9 +90,6 @@ sudo iptables -F
 sudo iptables -t nat -F 
 sudo iptables -X
 
-sudo iptables -I FORWARD -i <DEFAULT_IF_NAME> -o <VIRTUAL_IF_NAME> -j ACCEPT
-sudo iptables -I FORWARD -i <VIRTUAL_IF_NAME> -o <DEFAULT_IF_NAME> -j ACCEPT
-
 sudo iptables -A FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT
 sudo iptables -A FORWARD -i <VIRTUAL_IF_NAME> -o <DEFAULT_IF_NAME> -j ACCEPT
 sudo iptables -A FORWARD -i <DEFAULT_IF_NAME> -o <VIRTUAL_IF_NAME> -j ACCEPT

@@ -21,7 +21,7 @@ services:
       - /root/pki/:/root/pki/ # dir for keys of CA
       - /etc/openvpn/:/etc/openvpn/ # dir for openvpn configs
       - /etc/openvpn/pam/:/etc/pam.d/ # dir for pam module configs
-      - /opt/openvpn-mfa/:/opt/google-auth/ # dir for google-auth private keys
+      - /opt/openvpn-mfa/:/home/ # dir for google-auth private keys
       - /opt/openvpn-ccd/:/etc/openvpn/ccd/ # dir for client configs
       - /var/log/openvpn:/var/log/ # dir for logs
     restart: unless-stopped
