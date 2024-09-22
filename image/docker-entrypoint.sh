@@ -67,6 +67,40 @@ if [ ! -d "$CCD_DIR" ]; then
   exit 1
 fi
 
+### Simple iteration of client configurations (ovpn-routes) in the CCD folder
+#for file in "$CCD_DIR"/*; do
+#  username=$(basename "$file")
+#
+#  if id "$username" &>/dev/null; then
+#    echo "User $username already exists"
+#  else
+#    ### Create a user with incrementable UID and GID
+#    adduser -D -u "$start_uid" -g "$start_gid" "$username"
+#    chown  "$start_uid":"$start_gid" /home/$username/.google_authenticator
+#    chmod 400 /home/$username/.google_authenticator
+#    echo "User $username created with UID $start_uid and GID $start_gid"
+#    ### Increment the UID and GID for the following user
+#    start_uid=$((start_uid + 1))
+#    start_gid=$((start_gid + 1))
+#  fi
+#done
+
+### Checking free uid and gid
+get_next_uid_gid() {
+  local current_uid=$1
+  local current_gid=$2
+
+  while id -u "$current_uid" >/dev/null 2>&1; do
+    current_uid=$((current_uid + 1))
+  done
+
+  while getent group "$current_gid" >/dev/null 2>&1; do
+    current_gid=$((current_gid + 1))
+  done
+
+  echo "$current_uid $current_gid"
+}
+
 ### Iteration of client configurations (ovpn-routes) in the CCD folder
 for file in "$CCD_DIR"/*; do
   username=$(basename "$file")
@@ -74,49 +108,16 @@ for file in "$CCD_DIR"/*; do
   if id "$username" &>/dev/null; then
     echo "User $username already exists"
   else
-    ### Create a user with incrementable UID and GID
-    adduser -D -u "$start_uid" -g "$start_gid" "$username"
-    chown  "$start_uid":"$start_gid" /home/$username/.google_authenticator
+    read next_uid next_gid <<<$(get_next_uid_gid "$start_uid" "$start_gid")
+    adduser -D -u "$next_uid" -g "$next_gid" "$username"
+    chown  "$next_uid":"$next_gid" /home/$username/.google_authenticator
     chmod 400 /home/$username/.google_authenticator
-    echo "User $username created with UID $start_uid and GID $start_gid"
-    ### Increment the UID and GID for the following user
-    start_uid=$((start_uid + 1))
-    start_gid=$((start_gid + 1))
+    echo "User $username created with UID $next_uid and GID $next_gid"
+
+    start_uid=$((next_uid + 1))
+    start_gid=$((next_gid + 1))
   fi
 done
-
-### Checking free uid and gid
-#get_next_uid_gid() {
-#  local current_uid=$1
-#  local current_gid=$2
-#
-#  while id -u "$current_uid" >/dev/null 2>&1; do
-#    current_uid=$((current_uid + 1))
-#  done
-
-#  while getent group "$current_gid" >/dev/null 2>&1; do
-#    current_gid=$((current_gid + 1))
-#  done
-
-#  echo "$current_uid $current_gid"
-#}
-
-#for file in "$CCD_DIR"/*; do
-#  username=$(basename "$file")
-
-#  if id "$username" &>/dev/null; then
-#    echo "User $username already exists"
-#  else
-#    read next_uid next_gid <<<$(get_next_uid_gid "$start_uid" "$start_gid")
-#    adduser -D -u "$next_uid" -g "$next_gid" "$username"
-#    chown  "$next_uid":"$next_gid" /home/$username/.google_authenticator
-#    chmod 400 /home/$username/.google_authenticator
-#    echo "User $username created with UID $next_uid and GID $next_gid"
-
-#    start_uid=$((next_uid + 1))
-#    start_gid=$((next_gid + 1))
-#  fi
-#done
 
 ### Startup OpenVPN server
 echo "Startup OpenVPN server..."

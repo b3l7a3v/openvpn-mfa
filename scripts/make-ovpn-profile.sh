@@ -32,7 +32,6 @@ persist-key
 persist-tun
 verb 3
 key-direction 1
-verb 3
 auth-nocache
 auth-user-pass
 <ca>
