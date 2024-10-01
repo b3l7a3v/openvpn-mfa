@@ -1,5 +1,9 @@
+###### DOCS
+### https://github.com/google/google-authenticator-libpam
+######
+
 ### Requires authorization on the openvpn server specifying TOTP
-auth required pam_google_authenticator.so
+auth required pam_google_authenticator.so debug grace_period=43200
 
 ### Requires authorization on the openvpn server with a username.
 account optional pam_unix.so
@@ -7,4 +11,15 @@ account optional pam_unix.so
 ### Requires authorization on the openvpn server with a password.
 # password optional pam_unix.so
 
+### Add logs into default system logger
+# debug
+
+### Disable PAM module require that the secrets file must be owned the user logging (DANGEROUS)
+# no_strict_owner
+
+### Disable 600 only for owner  (DANGEROUS)
+# allowed_perm=0nnn 
+
+### Allow a half-day between requesting codes;
+# grace_period=43200
 

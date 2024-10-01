@@ -34,6 +34,8 @@ verb 3
 key-direction 1
 auth-nocache
 auth-user-pass
+keepalive 10 50
+reconnect 5 300
 <ca>
 `cat /root/pki/ca.crt `
 </ca>
