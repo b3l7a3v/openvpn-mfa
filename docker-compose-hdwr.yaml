@@ -1,0 +1,27 @@
+version: '3.8'
+services:
+
+  #######################################
+  #          OPENVPN-SERVER-HDWR        #
+  #######################################
+
+  openvpn:
+    build: ./image/openvpn/
+    hostname: 'openvpn-server-hdwr'
+    container_name: 'openvpn-hdwr'
+    cap_add:
+      - NET_ADMIN
+    network_mode: host
+    devices:
+      - /dev/net/tun
+    environment:
+      - EASYRSA_PKI=/root/pki
+      - EASYRSA_BATCH=1
+    volumes:
+      - /root/pki/:/root/pki/ # dir for keys of CA
+      - /etc/openvpn-hdwr/:/etc/openvpn/ # dir for openvpn configs
+      - /opt/openvpn-hdwr-ccd/:/etc/openvpn/ccd/ # dir for client configs
+      - /var/log/openvpn-hdwr/:/var/log/ # dir for logs
+    restart: unless-stopped
+
+

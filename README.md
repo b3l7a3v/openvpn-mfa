@@ -2,28 +2,7 @@
 
 ### Installing docker + compose. Debian example:
 ```
-sudo apt update
-sudo apt install apt-transport-https ca-certificates curl software-properties-common
-
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-
-sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
-sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
-
-sudo apt update
-
-apt-cache policy docker-ce
-sudo apt install docker-ce
-```
-
-```
-sudo curl -L "https://github.com/docker/compose/releases/download/1.26.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-
-sudo chmod +x /usr/local/bin/docker-compose
-
-ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
-
-docker-compose --version
+curl get.docker.com -L |bash
 ```
 
 ### Installing iptables:
@@ -36,27 +15,32 @@ sudo systemctl enable netfilter-persistent
 ### Preparing directories:
 ```
 mkdir -p /root/pki/
-mkdir -p /etc/openvpn/pki/ 
-mkdir -p /etc/openvpn/pam/ 
+mkdir -p /etc/openvpn-mfa/pki/ 
+mkdir -p /etc/openvpn-mfa/pam/ 
 mkdir -p /opt/openvpn-mfa/
-mkdir -p /opt/openvpn-profiles/
-mkdir -p /opt/openvpn-ccd/
-mkdir -p /opt/openvpn-scripts/
-mkdir -p /var/log/openvpn/
+mkdir -p /opt/openvpn-mfa-profiles/
+mkdir -p /opt/openvpn-mfa-ccd/
+mkdir -p /opt/openvpn-mfa-scripts/
+mkdir -p /var/log/openvpn-mfa/
 ```
 
 ### Copy configs and scripts from project to dest. server:
 ```
-cp configs/ovpn/server.conf /etc/openvpn/
-cp configs/pam/openvpn /etc/openvpn/pam/
 
-cp scripts/make-ovpn-profile.sh /opt/openvpn-scripts/
-cp scripts/remove-ovpn-profile.sh /opt/ /opt/openvpn-scripts/
+cp configs/ovpn/server.conf /etc/openvpn/ && ls /etc/openvpn/
+
+
+cp configs/pam/openvpn /etc/openvpn-mfa/pam/ && ls /etc/openvpn-mfa/pam/
+
+cp scripts/make-ovpn-profile.sh /opt/openvpn-mfa-scripts/ && ls /opt/openvpn-mfa-scripts/
+cp scripts/remove-ovpn-profile.sh /opt/ /opt/openvpn-mfa-scripts/ && ls /opt/openvpn-mfa-scripts/
 ```
 
 ### Create dummy config for start PAM module
 ```
-echo "" > /opt/openvpn-ccd/dummy.client
+echo "" > /opt/openvpn-mfa-ccd/dummy.client
+mkdir -p /opt/openvpn-mfa/dummy.client/
+echo "" > /opt/openvpn-mfa/dummy.client/.google_authenticator
 ```
 
 ### Setup OpenVPN server address into /opt/openvpn-scripts/make-ovpn-profile.sh
@@ -90,14 +74,26 @@ sudo iptables -F
 sudo iptables -t nat -F 
 sudo iptables -X
 
+### FOR OVPN
 sudo iptables -A FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT
-sudo iptables -A FORWARD -i <VIRTUAL_IF_NAME> -o <DEFAULT_IF_NAME> -j ACCEPT
-sudo iptables -A FORWARD -i <DEFAULT_IF_NAME> -o <VIRTUAL_IF_NAME> -j ACCEPT
-sudo iptables -A FORWARD -s 10.8.0.0/16 -j ACCEPT
+sudo iptables -A FORWARD -i tun1 -o eth0 -j ACCEPT
+sudo iptables -A FORWARD -i eth0 -o tun1 -j ACCEPT
+sudo iptables -A FORWARD -s 10.12.0.0/24 -j ACCEPT
 
-sudo iptables -t nat -A POSTROUTING -s 10.8.0.0/16 -o <DEFAULT_IF_NAME> -j MASQUERADE
+### FOR OVPN-MFA
+sudo iptables -A FORWARD -i tun0 -o eth0 -j ACCEPT
+sudo iptables -A FORWARD -i eth0 -o tun0 -j ACCEPT
+sudo iptables -A FORWARD -s 10.11.0.0/16 -j ACCEPT
+
+### FOR OVPN
+sudo iptables -t nat -A POSTROUTING -s 10.12.0.0/24 -o eth0 -j MASQUERADE
 iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 iptables -t nat -A POSTROUTING -o tun0 -j MASQUERADE
+
+### FOR OVPN-MFA
+sudo iptables -t nat -A POSTROUTING -s 10.11.0.0/16 -o eth0 -j MASQUERADE
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+iptables -t nat -A POSTROUTING -o tun1 -j MASQUERADE
 
 sudo iptables-save | sudo tee /etc/iptables/rules.v4
 ```

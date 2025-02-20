@@ -2,6 +2,9 @@ FROM alpine:3.20
 
 LABEL maintainer="Maxim Belyaev"
 
+### Update package manager
+# RUN apk update --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/v3.20/main --repository=https://dl-cdn.alpinelinux.org/alpine/v3.20/community
+
 ### Install packages
 RUN apk add --no-cache \
     bash \
@@ -19,13 +22,9 @@ RUN apk add --no-cache \
     libnl3-dev \
     libcap-ng-dev \
     linux-pam-dev \
-    pkgconfig
-
-### Install MFA packages
-RUN apk add google-authenticator libqrencode
-
-### Create mfa-keys directory
-RUN mkdir -p /opt/google-auth/ && chmod 777 /opt/google-auth/
+    pkgconfig \
+    nano \
+    openrc
 
 ### Download and configure build
 RUN wget https://github.com/OpenVPN/openvpn/releases/download/v2.6.12/openvpn-2.6.12.tar.gz && \
